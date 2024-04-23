@@ -1,113 +1,162 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import { Font } from "@/app/types";
+import DynamicFontLoader from "@/app/_components/DynamicFontLoader";
+import { getFontsList } from "@/app/_functions/main";
+import Button from "@/app/_components/Button";
+import { useAppContext } from "@/app/_contexts/AppContext";
+import Logo from "@/app/_components/Logo";
+import Icon from "@/app/_components/Icon";
 
 export default function Home() {
+  const [fonts, setFonts] = useState<Font[]>([]);
+  const [primaryFont, setPrimaryFont] = useState<Font>();
+  const [secondaryFont, setSecondaryFont] = useState<Font>();
+  const [lockPrimaryFont, setLockPrimaryFont] = useState(false);
+  const [lockSecondaryFont, setLockSecondaryFont] = useState(false);
+  const { fontPairs, saveFontPair, removeFontPair, clearFontPairs } =
+    useAppContext();
+
+  const handleRandomFont = () => {
+    if (fonts.length < 1) return;
+
+    if (!lockPrimaryFont) {
+      const indexPrimary = Math.floor(Math.random() * fonts.length);
+      setPrimaryFont(fonts[indexPrimary]);
+    }
+
+    if (!lockSecondaryFont) {
+      const indexSecondary = Math.floor(Math.random() * fonts.length);
+      setSecondaryFont(fonts[indexSecondary]);
+    }
+  };
+
+  useEffect(() => {
+    getFontsList(setFonts);
+  }, [setFonts]);
+
+  useEffect(() => {
+    if (primaryFont) return;
+    if (secondaryFont) return;
+
+    handleRandomFont();
+  }, [fonts]);
+
+  if (!primaryFont || !secondaryFont)
+    return (
+      <div className="flex flex-1 items-center justify-center text-4xl">
+        <Logo />
+      </div>
+    );
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div className="flex flex-1 flex-row">
+      {primaryFont && <DynamicFontLoader font={primaryFont} />}
+      {secondaryFont && <DynamicFontLoader font={secondaryFont} />}
+      <div className="p-6 w-72 flex flex-col gap-6 bg-neutral-700 text-neutral-200 select-none">
+        <div className="text-xl">
+          <Logo />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Button onClick={handleRandomFont}>
+            <Icon name="shuffle" />
+            <span>Random</span>
+          </Button>
+          <Button
+            onClick={() => {
+              if (!primaryFont) return;
+              if (!secondaryFont) return;
+
+              saveFontPair({
+                primary: primaryFont,
+                secondary: secondaryFont,
+              });
+            }}>
+            <Icon name="save" />
+            <span>Save Pairing</span>
+          </Button>
+        </div>
+        <div>
+          <div className="flex justify-between gap-4 items-center">
+            <div>Primary</div>
+            <Button onClick={() => setLockPrimaryFont(!lockPrimaryFont)}>
+              <span
+                className={`leading-none ${
+                  lockPrimaryFont ? "text-primary-500" : ""
+                }`}>
+                <Icon name="lock" />
+              </span>
+            </Button>
+          </div>
+          <div>{primaryFont?.family}</div>
+        </div>
+        <div>
+          <div className="flex justify-between items-center">
+            <div>Secondary</div>
+            <Button onClick={() => setLockSecondaryFont(!lockSecondaryFont)}>
+              <span
+                className={`leading-none ${
+                  lockSecondaryFont ? "text-primary-500" : ""
+                }`}>
+                <Icon name="lock" />
+              </span>
+            </Button>
+          </div>
+          <div>{secondaryFont?.family}</div>
+        </div>
+
+        <div>
+          <div className="flex gap-4 items-center justify-between">
+            <div>Saved Pairings</div>
+            <Button
+              className={`${fontPairs.length < 1 ? "text-neutral-500" : ""}`}
+              onClick={() => clearFontPairs()}>
+              <Icon name="delete_sweep" />
+            </Button>
+          </div>
+          <div className="flex flex-col gap-2">
+            {fontPairs.map((fontPair, index) => {
+              return (
+                <div
+                  className="group flex gap-4 justify-between items-center"
+                  key={index}>
+                  <div
+                    onClick={() => {
+                      setPrimaryFont(fontPair.primary);
+                      setSecondaryFont(fontPair.secondary);
+                    }}>
+                    <div>{fontPair.primary.family}</div>
+                    <div>{fontPair.secondary.family}</div>
+                  </div>
+                  <Button
+                    className="opacity-0 group-hover:opacity-100"
+                    onClick={() => removeFontPair(index)}>
+                    <Icon name="close" />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
+      <div className="flex-1">
+        <div
+          className="outline-none"
+          contentEditable={true}
+          style={{ fontFamily: primaryFont?.family }}>
+          Title
+        </div>
+        <div
+          className="outline-none"
+          contentEditable={true}
+          style={{ fontFamily: secondaryFont?.family }}>
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur
+          veritatis magnam fuga officia velit sapiente! Repellat quae
+          consequuntur quasi animi veniam, maxime dicta adipisci, accusantium
+          tenetur voluptatem dignissimos earum unde!
+        </div>
       </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
 }
