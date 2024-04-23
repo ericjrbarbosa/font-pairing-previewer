@@ -4,7 +4,7 @@ import "./globals.css";
 import "./globalicons.css";
 import AppContextProvider from "@/app/_contexts/AppContext";
 
-const roboto = Roboto({ subsets: ["latin"], weight: ["400", "700"] });
+const roboto = Roboto({ subsets: ["latin"], weight: ["100", "400", "700"] });
 
 export const metadata: Metadata = {
   title: "typr",

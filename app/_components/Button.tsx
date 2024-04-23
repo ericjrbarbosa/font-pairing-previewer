@@ -7,7 +7,7 @@ const Button = (props: Props) => {
 
   return (
     <button
-      className="flex items-center gap-2 leading-none"
+      className="flex items-center outline-none gap-2 leading-none"
       type="button"
       {...props}>
       {children}
