@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Font } from "@/app/types";
 import DynamicFontLoader from "@/app/_components/DynamicFontLoader";
-import { getFontsList } from "@/app/_functions/main";
+import { getFontsList } from "@/app/_actions/fonts";
 import Button from "@/app/_components/Button";
 import { useAppContext } from "@/app/_contexts/AppContext";
 import Logo from "@/app/_components/Logo";
@@ -26,7 +26,7 @@ export default function Home() {
 
   useHotkeys(
     "space",
-    debounce(() => handleRandomFont(), 300)
+    debounce(() => handleRandomFont(), 500)
   );
   useHotkeys("shift+1", () => handleTogglePrimaryLock());
   useHotkeys("shift+2", () => handleToggleSecondaryLock());
@@ -63,7 +63,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    getFontsList(setFonts);
+    getFontsList().then((_fonts) => setFonts(_fonts));
   }, [setFonts]);
 
   useEffect(() => {

@@ -34,7 +34,8 @@ const TextOnlyInput: React.FC<TextOnlyInputProps> = ({
       contentEditable={true}
       spellCheck={false}
       onPaste={handlePaste}
-      onInput={handleInput}>
+      onInput={handleInput}
+      suppressContentEditableWarning={true}>
       {text}
     </div>
   );
